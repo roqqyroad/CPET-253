@@ -75,6 +75,7 @@ void MotorForward (void)
 //Each time this function is called, one cycle of the PWM is output on the EN pins of the motors
 {
      P3OUT |= RIGHT_MOT_SLEEP | LEFT_MOT_SLEEP;  //wake up motors
+
      P5OUT &= ~RIGHT_MOT_DIR & ~LEFT_MOT_DIR;  //motors forward
 
      P2OUT |= RIGHT_MOT_PWM | LEFT_MOT_PWM;  //drive EN pins high for PWM
@@ -95,23 +96,92 @@ void MotorForward (void)
      while (!(SysTick -> CTRL & 0x00010000));
      return;
 }
-void MotorBackward (void)
+
+void MotorBackward (void){
 //This function is used to drive both motors in the backward direction.
 //It uses SysTick to create a PWM wave with a period of 10ms and 25% duty cycle
 //The PWM signal is high for 2.5 ms and low for 7.5 ms
 //Each time this function is called, one cycle of the PWM is output on the PWM pin
+     P3OUT |= RIGHT_MOT_SLEEP | LEFT_MOT_SLEEP;  //wake up motors
 
-void MotorTurnRight (void)
+     P5OUT |= RIGHT_MOT_DIR | LEFT_MOT_DIR;  //motors BACKWARDS!
+
+     P2OUT |= RIGHT_MOT_PWM | LEFT_MOT_PWM;  //drive EN pins high for PWM
+     // wait high time
+     // The system clock is 48 Mhz,
+     // for 25% duty cycle, high time is 2500 us
+     // (2500us * 48MHz) = 120000
+     SysTick -> LOAD = 120000;  //load the high time count into the timer
+     SysTick -> VAL = 0;        //clear the timer to start at
+     SysTick -> CTRL = 0x00000005;  //start the timer
+     while (!(SysTick -> CTRL & 0x00010000));  //wait until the timer counts down to 0
+     P2OUT &= ~RIGHT_MOT_PWM & ~LEFT_MOT_PWM;  //drive pins low for PWM
+     // low time for 10ms period with 25% duty cycle is 7500us
+     // (7500us * 48MHz) = 360000
+     SysTick -> LOAD = 360000;  //load the low time count into the timer
+     SysTick -> VAL = 0;
+     SysTick -> CTRL = 0x00000005;
+     while (!(SysTick -> CTRL & 0x00010000));
+     return;
+}
+
+void MotorTurnRight (void){
 //This function is used to drive left motor forward and right motor to sleep.
 //It uses SysTick to create a PWM wave with a period of 10ms and 25% duty cycle
 //The PWM signal is high for 2.5 ms and low for 7.5 ms
 //Each time this function is called, one cycle of the PWM is output on the PWM pin
+     P3OUT &= ~RIGHT_MOT_SLEEP;  //SLEEP RIGHT MOTOR
+     P3OUT |= LEFT_MOT_SLEEP;  //WAKE UP LEFT MOTOR TO TURN RIGHT
 
-void MotorTurnLeft (void)
+     P5OUT &= ~LEFT_MOT_DIR;  //LEFT MOTOR FORWARD Right motor is sleeping
+
+     P2OUT |= RIGHT_MOT_PWM | LEFT_MOT_PWM;  //drive EN pins high for PWM
+     // wait high time
+     // The system clock is 48 Mhz,
+     // for 25% duty cycle, high time is 2500 us
+     // (2500us * 48MHz) = 120000
+     SysTick -> LOAD = 120000;  //load the high time count into the timer
+     SysTick -> VAL = 0;        //clear the timer to start at
+     SysTick -> CTRL = 0x00000005;  //start the timer
+     while (!(SysTick -> CTRL & 0x00010000));  //wait until the timer counts down to 0
+     P2OUT &= ~RIGHT_MOT_PWM & ~LEFT_MOT_PWM;  //drive pins low for PWM
+     // low time for 10ms period with 25% duty cycle is 7500us
+     // (7500us * 48MHz) = 360000
+     SysTick -> LOAD = 360000;  //load the low time count into the timer
+     SysTick -> VAL = 0;
+     SysTick -> CTRL = 0x00000005;
+     while (!(SysTick -> CTRL & 0x00010000));
+     return;
+}
+
+void MotorTurnLeft (void){
 //This function is used to drive right motor forward and left motor to sleep.
 //It uses SysTick to create a PWM wave with a period of 10ms and 25% duty cycle
 //The PWM signal is high for 2.5 ms and low for 7.5 ms
 //Each time this function is called, one cycle of the PWM is output on the PWM pin
+     P3OUT &= ~LEFT_MOT_SLEEP;  //SLEEP LEFT MOTOR
+     P3OUT |= RIGHT_MOT_SLEEP;  //WAKE UP RIGHT MOTOR
+
+     P5OUT &= ~RIGHT_MOT_DIR;  //RIGHT MOTOR FORWARD Left motor is sleeping
+
+     P2OUT |= RIGHT_MOT_PWM | LEFT_MOT_PWM;  //drive EN pins high for PWM
+     // wait high time
+     // The system clock is 48 Mhz,
+     // for 25% duty cycle, high time is 2500 us
+     // (2500us * 48MHz) = 120000
+     SysTick -> LOAD = 120000;  //load the high time count into the timer
+     SysTick -> VAL = 0;        //clear the timer to start at
+     SysTick -> CTRL = 0x00000005;  //start the timer
+     while (!(SysTick -> CTRL & 0x00010000));  //wait until the timer counts down to 0
+     P2OUT &= ~RIGHT_MOT_PWM & ~LEFT_MOT_PWM;  //drive pins low for PWM
+     // low time for 10ms period with 25% duty cycle is 7500us
+     // (7500us * 48MHz) = 360000
+     SysTick -> LOAD = 360000;  //load the low time count into the timer
+     SysTick -> VAL = 0;
+     SysTick -> CTRL = 0x00000005;
+     while (!(SysTick -> CTRL & 0x00010000));
+     return;
+}
 
 
 void main(void)
@@ -121,30 +191,78 @@ void main(void)
        WDT_A->CTL = WDT_A_CTL_PW | WDT_A_CTL_HOLD;     // stop watchdog timer
        Clock_Init48MHz();  // makes bus clock 48 MHz
        //Call the appropriate functions from Init_Ports.c
+       Port2_Init();
+       Port3_Init();
+       Port5_Init();
 
        //These are the four states of the state machine
-       enum motor_states {
+       enum motor_states {FORWARD, RIGHT, BACKWARD, LEFT} state, prevState;
 
-       state =                    //start state
-       prevState =                //used to know when the state has changed
-       uint16_t stateTimer;       //used to stay in a state
-       bool isNewState;           //true when the state has switched
+       state = FORWARD; //start state
+       prevState = !FORWARD; //used to know when the state has changed
+       uint16_t stateTimer; //used to stay in a state
+       bool isNewState; //true when the state has switched
 
        //through this while loop, every time one of the motor functions is called
        //it takes 10ms. Assume that the delay in each state is 10ms
        //time spent in any direction = stateTimer * 10ms
        while(1)
        {
-           isNewState = (state != prevState);
+           isNewState = (state != prevState);//checks if its new state
            prevState = state;  //save state for next time
 
           switch (state) {
           //each case below should have entry housekeeping, state business and exit housekeeping
           //remember to reset the stateTimer each time you enter a new state
           //you must assign a new state when stateTimer reaches the correct value
-          case
+          
+          //-----------------------------------------------------------------
+          case FORWARD:
+            if(isNewState){
+                stateTimer = 0; //a new state started, so the timer should be reset.
+            }
+            MotorForward();
+            stateTimer++;
+            
+            if(stateTimer >= 100){
+                state = RIGHT; //when ~1 second has passed, the next state will be right
+            }
                   break;
-          case
+          //-----------------------------------------------------------------
+          case RIGHT:
+            if(isNewState){
+                stateTimer = 0; //a new state started, so the timer should be reset.
+            }
+            MotorTurnRight();
+            stateTimer++;
+            
+            if(stateTimer >= 150){
+                state = BACKWARD; //when ~1.5 second has passed, the next state will be right
+            }
+                  break;
+          //-----------------------------------------------------------------
+          case BACKWARD:
+            if(isNewState){
+                stateTimer = 0; //a new state started, so the timer should be reset.
+            }
+            MotorBackward();
+            stateTimer++;
+            
+            if(stateTimer >= 100){
+                state = LEFT; //when ~1 second has passed, the next state will be right
+            }
+                  break;
+          //-----------------------------------------------------------------
+          case LEFT:
+            if(isNewState){
+                stateTimer = 0; //a new state started, so the timer should be reset.
+            }
+            MotorTurnLeft();
+            stateTimer++;
+            
+            if(stateTimer >= 150){
+                state = FORWARD; //when ~1.5 second has passed, the next state will be right
+            }
                   break;
 
           } //switch
