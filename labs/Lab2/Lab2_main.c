@@ -215,7 +215,7 @@ void main(void)
           //each case below should have entry housekeeping, state business and exit housekeeping
           //remember to reset the stateTimer each time you enter a new state
           //you must assign a new state when stateTimer reaches the correct value
-          
+
           //-----------------------------------------------------------------
           case FORWARD:
             if(isNewState){
@@ -223,7 +223,7 @@ void main(void)
             }
             MotorForward();
             stateTimer++;
-            
+
             if(stateTimer >= 100){
                 state = RIGHT; //when ~1 second has passed, the next state will be right
             }
@@ -235,8 +235,8 @@ void main(void)
             }
             MotorTurnRight();
             stateTimer++;
-            
-            if(stateTimer >= 150){
+
+            if(stateTimer >= 90){
                 state = BACKWARD; //when ~1.5 second has passed, the next state will be right
             }
                   break;
@@ -247,7 +247,7 @@ void main(void)
             }
             MotorBackward();
             stateTimer++;
-            
+
             if(stateTimer >= 100){
                 state = LEFT; //when ~1 second has passed, the next state will be right
             }
@@ -259,8 +259,8 @@ void main(void)
             }
             MotorTurnLeft();
             stateTimer++;
-            
-            if(stateTimer >= 150){
+
+            if(stateTimer >= 90){
                 state = FORWARD; //when ~1.5 second has passed, the next state will be right
             }
                   break;
