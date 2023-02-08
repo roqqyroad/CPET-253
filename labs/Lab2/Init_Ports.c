@@ -48,6 +48,8 @@ void Port2_Init(void){
   // Use the port output register to configure the resistors as pull-ups or pull-downs
   // Use the PxSEL0 and PxSEL1 registers to enable alternate pin functions, if applicable
   // Use the port output register to put outputs to an initial state
+  
+  P2DIR |= BIT6; P2DIR |= BIT7;//set pins 6 and 7 to outputs
 }
 
 // ------------Port3_Init------------
@@ -66,6 +68,8 @@ void Port3_Init(void){
   // Use the port output register to configure the resistors as pull-ups or pull-downs
   // Use the PxSEL0 and PxSEL1 registers to enable alternate pin functions, if applicable
   // Use the port output register to put outputs to an initial state
+  
+  P3DIR &= BIT6; P3DIR &= BIT7;//Set pins 6 and 7 to inputs
 }
 
 // ------------Port4_Init------------
@@ -102,6 +106,8 @@ void Port5_Init(void){
   // Use the port output register to configure the resistors as pull-ups or pull-downs
   // Use the PxSEL0 and PxSEL1 registers to enable alternate pin functions, if applicable
   // Use the port output register to put outputs to an initial state
+  
+  P6DIR &= BIT5; P5DIR &= BIT4; //set buts 5 and 4 to inputs
 }
 
 // ------------Port6_Init------------
