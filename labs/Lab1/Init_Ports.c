@@ -1,49 +1,224 @@
-//******************************************************************//
-// CPET253 Lab1 – I/O Port Review
-//
-// author: Jeanne Christman
-// original version 1/8/2023
-//
-// This is a simple program that turns on and off different colors of LED2 based on
-// which button is pushed
-// -the two pushbuttons are P1.1(S1) and P1.4(S2)
-// -The LED is controlled by P2.0(red), P2.1(green) and P2.2(blue)
-// -In this program, S1 will turn green on or off and S2 will
-// turn blue on or off
-// -If the color is off, pressing the pushbutton will turn it on
-// -If the color is on, pressing the pushbutton will turn it off
-//
-//This program is written for the MSP432 Launchpad development board.
-//*****************************************************************//
+// Init_Ports.c
+// Runs on MSP432
+// Provide functions that initialize ports 
+// Prof. Christman
+// 1/8/2023
+
+/* These functions will be used in all of the labs for CPET253
+
+There is an initialization function for each of the ports 1-10 and J.
+
+The initializations will be different for each lab.
+*/
+
 #include "msp.h"
-#include <stdint.h>
-#include "../inc/Init_Ports.h" // Includes the file that we just edited to set ports and pins for step 3
-void main()
-{
-
-    WDT_A->CTL = WDT_A_CTL_PW | WDT_A_CTL_HOLD; //stop watchdog timer - always include this
-
-    //Call functions from Init_Ports.c to initialize ports
-    Port1_Init();
-    Port2_Init();
-
-    while (1) {
-        if ((P1IN & 0b00000010) == 0) { //determine if S1 is pushed - remember it is active low
-            P2OUT ^= 0b00000010; //toggle green on LED2
-
-            while ((P1IN & 0b00000010) == 0); //wait here for pin to be released.
-
-        } //END IF
 
 
-        if ((P1IN & 0b00010000) == 0) { //determine if S2 is pushed - remember it is active low
-            P2OUT ^= 0b00000100; //toggle blue on LED2
+// ------------Port1_Init------------
+// First set the pin directions
+// Enable resistors for inputs
+// Set input resistors for pull-up or pull-down
+// Enable alternate pin functions, if appliable
+// Drive initial values on outputs
+// Input: none
+// Output: none
+void Port1_Init(void){
+  // Use the port direction register to configure pins as inputs and output
+  // 	-A 1 sets a pin as an output. Use |= with a bit mask to set 1's.
+  // 	-A 0 sets a pin as an input. Use &= with a bit mask to set 0's.
 
-            while ((P1IN & 0b00010000) == 0); //wait here for pin to be released.
+    P1DIR = 0b11101101; // Sets pins 1 and 4 as inputs
+    P1REN = 0b00010010; // Enables resistors on pins 1 and 4
+    P1OUT = 0b00010010; // Sets the resistors to pullup resistors
 
-        } //END IF
 
-    } //end while
+  // Use the resistor enable register to enable resistors for inputs that need them
+  // Use the port output register to configure the resistors as pull-ups or pull-downs
+  // Use the PxSEL0 and PxSEL1 registers to enable alternate pin functions, if applicable
+  // Use the port output register to put outputs to an initial state
+}
 
-    return; //code can never get here
+// ------------Port2_Init------------
+// First set the pin directions
+// Enable resistors for inputs
+// Set input resistors for pull-up or pull-down
+// Enable alternate pin functions, if appliable
+// Drive initial values on outputs
+// Input: none
+// Output: none
+void Port2_Init(void){
+  // Use the port direction register to configure pins as inputs and output
+  // 	-A 1 sets a pin as an output. Use |= with a bit mask to set 1's.
+  // 	-A 0 sets a pin as an input. Use &= with a bit mask to set 0's.
+
+    P2DIR = 0b00000111; // Sets pins 2, 1, and 0 to outputs.
+    P2OUT = 0b11111000; // Sets their initial value to zero.
+
+
+  // Use the resistor enable register to enable resistors for inputs that need them
+  // Use the port output register to configure the resistors as pull-ups or pull-downs
+  // Use the PxSEL0 and PxSEL1 registers to enable alternate pin functions, if applicable
+  // Use the port output register to put outputs to an initial state
+}
+
+// ------------Port3_Init------------
+// First set the pin directions
+// Enable resistors for inputs
+// Set input resistors for pull-up or pull-down
+// Enable alternate pin functions, if appliable
+// Drive initial values on outputs
+// Input: none
+// Output: none
+void Port3_Init(void){
+  // Use the port direction register to configure pins as inputs and output
+  // 	-A 1 sets a pin as an output. Use |= with a bit mask to set 1's.
+  // 	-A 0 sets a pin as an input. Use &= with a bit mask to set 0's.
+  // Use the resistor enable register to enable resistors for inputs that need them
+  // Use the port output register to configure the resistors as pull-ups or pull-downs
+  // Use the PxSEL0 and PxSEL1 registers to enable alternate pin functions, if applicable
+  // Use the port output register to put outputs to an initial state
+}
+
+// ------------Port4_Init------------
+// First set the pin directions
+// Enable resistors for inputs
+// Set input resistors for pull-up or pull-down
+// Enable alternate pin functions, if appliable
+// Drive initial values on outputs
+// Input: none
+// Output: none
+void Port4_Init(void){
+  // Use the port direction register to configure pins as inputs and output
+  // 	-A 1 sets a pin as an output. Use |= with a bit mask to set 1's.
+  // 	-A 0 sets a pin as an input. Use &= with a bit mask to set 0's.
+  // Use the resistor enable register to enable resistors for inputs that need them
+  // Use the port output register to configure the resistors as pull-ups or pull-downs
+  // Use the PxSEL0 and PxSEL1 registers to enable alternate pin functions, if applicable
+  // Use the port output register to put outputs to an initial state
+}
+
+// ------------Port5_Init------------
+// First set the pin directions
+// Enable resistors for inputs
+// Set input resistors for pull-up or pull-down
+// Enable alternate pin functions, if appliable
+// Drive initial values on outputs
+// Input: none
+// Output: none
+void Port5_Init(void){
+  // Use the port direction register to configure pins as inputs and output
+  // 	-A 1 sets a pin as an output. Use |= with a bit mask to set 1's.
+  // 	-A 0 sets a pin as an input. Use &= with a bit mask to set 0's.
+  // Use the resistor enable register to enable resistors for inputs that need them
+  // Use the port output register to configure the resistors as pull-ups or pull-downs
+  // Use the PxSEL0 and PxSEL1 registers to enable alternate pin functions, if applicable
+  // Use the port output register to put outputs to an initial state
+}
+
+// ------------Port6_Init------------
+// First set the pin directions
+// Enable resistors for inputs
+// Set input resistors for pull-up or pull-down
+// Enable alternate pin functions, if appliable
+// Drive initial values on outputs
+// Input: none
+// Output: none
+void Port6_Init(void){
+  // Use the port direction register to configure pins as inputs and output
+  // 	-A 1 sets a pin as an output. Use |= with a bit mask to set 1's.
+  // 	-A 0 sets a pin as an input. Use &= with a bit mask to set 0's.
+  // Use the resistor enable register to enable resistors for inputs that need them
+  // Use the port output register to configure the resistors as pull-ups or pull-downs
+  // Use the PxSEL0 and PxSEL1 registers to enable alternate pin functions, if applicable
+  // Use the port output register to put outputs to an initial state
+}
+
+// ------------Port7_Init------------
+// First set the pin directions
+// Enable resistors for inputs
+// Set input resistors for pull-up or pull-down
+// Enable alternate pin functions, if appliable
+// Drive initial values on outputs
+// Input: none
+// Output: none
+void Port7_Init(void){
+  // Use the port direction register to configure pins as inputs and output
+  // 	-A 1 sets a pin as an output. Use |= with a bit mask to set 1's.
+  // 	-A 0 sets a pin as an input. Use &= with a bit mask to set 0's.
+  // Use the resistor enable register to enable resistors for inputs that need them
+  // Use the port output register to configure the resistors as pull-ups or pull-downs
+  // Use the PxSEL0 and PxSEL1 registers to enable alternate pin functions, if applicable
+  // Use the port output register to put outputs to an initial state
+}
+
+// ------------Port8_Init------------
+// First set the pin directions
+// Enable resistors for inputs
+// Set input resistors for pull-up or pull-down
+// Enable alternate pin functions, if appliable
+// Drive initial values on outputs
+// Input: none
+// Output: none
+void Port8_Init(void){
+  // Use the port direction register to configure pins as inputs and output
+  // 	-A 1 sets a pin as an output. Use |= with a bit mask to set 1's.
+  // 	-A 0 sets a pin as an input. Use &= with a bit mask to set 0's.
+  // Use the resistor enable register to enable resistors for inputs that need them
+  // Use the port output register to configure the resistors as pull-ups or pull-downs
+  // Use the PxSEL0 and PxSEL1 registers to enable alternate pin functions, if applicable
+  // Use the port output register to put outputs to an initial state
+}
+
+// ------------Port9_Init------------
+// First set the pin directions
+// Enable resistors for inputs
+// Set input resistors for pull-up or pull-down
+// Enable alternate pin functions, if appliable
+// Drive initial values on outputs
+// Input: none
+// Output: none
+void Port9_Init(void){
+  // Use the port direction register to configure pins as inputs and output
+  // 	-A 1 sets a pin as an output. Use |= with a bit mask to set 1's.
+  // 	-A 0 sets a pin as an input. Use &= with a bit mask to set 0's.
+  // Use the resistor enable register to enable resistors for inputs that need them
+  // Use the port output register to configure the resistors as pull-ups or pull-downs
+  // Use the PxSEL0 and PxSEL1 registers to enable alternate pin functions, if applicable
+  // Use the port output register to put outputs to an initial state
+}
+
+// ------------Port10_Init------------
+// First set the pin directions
+// Enable resistors for inputs
+// Set input resistors for pull-up or pull-down
+// Enable alternate pin functions, if appliable
+// Drive initial values on outputs
+// Input: none
+// Output: none
+void Port10_Init(void){
+  // Use the port direction register to configure pins as inputs and output
+  // 	-A 1 sets a pin as an output. Use |= with a bit mask to set 1's.
+  // 	-A 0 sets a pin as an input. Use &= with a bit mask to set 0's.
+  // Use the resistor enable register to enable resistors for inputs that need them
+  // Use the port output register to configure the resistors as pull-ups or pull-downs
+  // Use the PxSEL0 and PxSEL1 registers to enable alternate pin functions, if applicable
+  // Use the port output register to put outputs to an initial state
+}
+
+// ------------PortJ_Init------------
+// First set the pin directions
+// Enable resistors for inputs
+// Set input resistors for pull-up or pull-down
+// Enable alternate pin functions, if appliable
+// Drive initial values on outputs
+// Input: none
+// Output: none
+void PortJ_Init(void){
+  // Use the port direction register to configure pins as inputs and output
+  // 	-A 1 sets a pin as an output. Use |= with a bit mask to set 1's.
+  // 	-A 0 sets a pin as an input. Use &= with a bit mask to set 0's.
+  // Use the resistor enable register to enable resistors for inputs that need them
+  // Use the port output register to configure the resistors as pull-ups or pull-downs
+  // Use the PxSEL0 and PxSEL1 registers to enable alternate pin functions, if applicable
+  // Use the port output register to put outputs to an initial state
 }
