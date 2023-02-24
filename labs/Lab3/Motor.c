@@ -6,12 +6,12 @@
 // 1/26/2023
 
 /* These functions will be used in all of the labs for CPET253
-// Left motor direction connected to P5.4
-// Left motor PWM connected to P2.7/TA0CCP4
-// Left motor enable connected to P3.7
-// Right motor direction connected to P5.5
-// Right motor PWM connected to P2.6/TA0CCP3
-// Right motor enable connected to P3.6 */
+ // Left motor direction connected to P5.4
+ // Left motor PWM connected to P2.7/TA0CCP4
+ // Left motor enable connected to P3.7
+ // Right motor direction connected to P5.5
+ // Right motor PWM connected to P2.6/TA0CCP3
+ // Right motor enable connected to P3.6 */
 
 #include <stdint.h>
 #include "msp.h"
@@ -30,8 +30,23 @@
 // set the PWM speed control to 0% duty cycle.
 // Input: none
 // Output: none
-void Motor_Stop(void){
-   //your code here
+void Motor_Stop(void)
+{
+    // This function sets the motors to stop with a PWM signal fixed at 10ms
+        // having a duty cycle input when the function is called for each motor independently
+
+        P3OUT &= ~RIGHT_MOT_SLEEP; //Sleep right motor
+        P3OUT &= ~LEFT_MOT_SLEEP;  //Sleep left motor
+
+        P5OUT &= ~RIGHT_MOT_DIR;   //set right motor in forward direction
+        P5OUT &= ~LEFT_MOT_DIR;    //set left motor in forward direction
+
+        //No need to drive P2OUT since Timer will drive it directly
+        //This is configured via the PxSEL bits
+
+        TA0R = 0;                  //counter, start at zero once turned on
+        TA0CTL |= 0x0010;         // start counting by setting mode to UP
+        return;
 
 }
 
@@ -42,26 +57,27 @@ void Motor_Stop(void){
 //        rightDuty duty cycle of right wheel 
 // Output: none
 // Assumes: IO ports and Timers have been initialized.
-void Motor_Forward(volatile uint16_t leftDuty, volatile uint16_t rightDuty ){
-   // This function sets the motors to drive forward with a PWM signal fixed at 10ms
-   // having a duty cycle input when the function is called for each motor independently
+void Motor_Forward(volatile uint16_t leftDuty, volatile uint16_t rightDuty)
+{
+    // This function sets the motors to drive forward with a PWM signal fixed at 10ms
+    // having a duty cycle input when the function is called for each motor independently
 
-    P3OUT |=  RIGHT_MOT_SLEEP; //wake up right motor
-    P3OUT |=  LEFT_MOT_SLEEP;  //wake up left motor
+    P3OUT |= RIGHT_MOT_SLEEP; //wake up right motor
+    P3OUT |= LEFT_MOT_SLEEP;  //wake up left motor
 
     P5OUT &= ~RIGHT_MOT_DIR;   //set right motor in forward direction
     P5OUT &= ~LEFT_MOT_DIR;    //set left motor in forward direction
-	
-	//No need to drive P2OUT since Timer will drive it directly 
-	//This is configured via the PxSEL bits
+
+    //No need to drive P2OUT since Timer will drive it directly
+    //This is configured via the PxSEL bits
 
     TA0R = 0;                  //counter, start at zero once turned on
-    TA0CCR3  = rightDuty;      //right side high time goes in Capture/compare unit 3
-    TA0CCR4  = leftDuty;       //left side high time goes in Capture/compare unit 4
-	
-    TA0CTL  |= 0x0010;         // start counting by setting mode to UP
+    TA0CCR3 = rightDuty;   //right side high time goes in Capture/compare unit 3
+    TA0CCR4 = leftDuty;     //left side high time goes in Capture/compare unit 4
+
+    TA0CTL |= 0x0010;         // start counting by setting mode to UP
     return;
-  }
+}
 
 // ------------Motor_Right------------
 // Turn the robot to the right by running the
@@ -70,8 +86,27 @@ void Motor_Forward(volatile uint16_t leftDuty, volatile uint16_t rightDuty ){
 //        rightDuty duty cycle of right wheel 
 // Output: none
 // Assumes: IO ports and Timers have been initialized.
-void Motor_Right(uint16_t leftDuty, uint16_t rightDuty){ 
-   //your code here
+
+//Turn right, so left motor is awake
+void Motor_Right(uint16_t leftDuty, uint16_t rightDuty)
+{
+    // This function sets the left motor to drive forward with a PWM signal fixed at 10ms
+    // having a duty cycle input when the function is called for each motor independently
+
+    P3OUT &= ~RIGHT_MOT_SLEEP; //sleep right motor
+    P3OUT |= LEFT_MOT_SLEEP;  //wake up left motor
+
+    P5OUT &= ~LEFT_MOT_DIR;    //set left motor in forward direction
+
+    //No need to drive P2OUT since Timer will drive it directly
+    //This is configured via the PxSEL bits
+
+    TA0R = 0;                  //counter, start at zero once turned on
+    TA0CCR3 = rightDuty;   //right side high time goes in Capture/compare unit 3
+    TA0CCR4 = leftDuty;     //left side high time goes in Capture/compare unit 4
+
+    TA0CTL |= 0x0010;         // start counting by setting mode to UP
+    return;
 
 }
 
@@ -83,8 +118,27 @@ void Motor_Right(uint16_t leftDuty, uint16_t rightDuty){
 //        rightDuty duty cycle of right wheel 
 // Output: none
 // Assumes: IO ports and Timers have been initialized.
-void Motor_Left(uint16_t leftDuty, uint16_t rightDuty){ 
-    //your code here
+
+//Turn left so right motor is awake
+void Motor_Left(uint16_t leftDuty, uint16_t rightDuty)
+{
+    // This function sets the right motor to drive forward with a PWM signal fixed at 10ms
+    // having a duty cycle input when the function is called for each motor independently
+
+    P3OUT |= RIGHT_MOT_SLEEP; //wake up right motor
+    P3OUT &= ~LEFT_MOT_SLEEP;  //sleep left motor
+
+    P5OUT &= ~RIGHT_MOT_DIR;    //set right motor in forward direction
+
+    //No need to drive P2OUT since Timer will drive it directly
+    //This is configured via the PxSEL bits
+
+    TA0R = 0;                  //counter, start at zero once turned on
+    TA0CCR3 = rightDuty;   //right side high time goes in Capture/compare unit 3
+    TA0CCR4 = leftDuty;     //left side high time goes in Capture/compare unit 4
+
+    TA0CTL |= 0x0010;         // start counting by setting mode to UP
+    return;
 
 }
 
@@ -95,7 +149,24 @@ void Motor_Left(uint16_t leftDuty, uint16_t rightDuty){
 //        rightDuty duty cycle of right wheel
 // Output: none
 // Assumes: IO ports and Timers have been initialized.
-void Motor_Backward(uint16_t leftDuty, uint16_t rightDuty){ 
-    //your code here
+void Motor_Backward(uint16_t leftDuty, uint16_t rightDuty)
+{
+    // This function sets the motors to drive backward with a PWM signal fixed at 10ms
+    // having a duty cycle input when the function is called for each motor independently
+
+    P3OUT |= RIGHT_MOT_SLEEP; //wake up right motor
+    P3OUT |= LEFT_MOT_SLEEP;  //wake up left motor
+
+    P5OUT &= ~LEFT_MOT_DIR;    //set left motor in forward direction
+
+    //No need to drive P2OUT since Timer will drive it directly
+    //This is configured via the PxSEL bits
+
+    TA0R = 0;                  //counter, start at zero once turned on
+    TA0CCR3 = rightDuty;   //right side high time goes in Capture/compare unit 3
+    TA0CCR4 = leftDuty;     //left side high time goes in Capture/compare unit 4
+
+    TA0CTL |= 0x0010;         // start counting by setting mode to UP
+    return;
 
 }
