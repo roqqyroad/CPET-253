@@ -1,0 +1,1 @@
+"./AP.obj" "./Clock.obj" "./CortexM.obj" "./GPIO.obj" "./Init_Ports.obj" "./Lab5_BLEmain.obj" "./LaunchPad.obj" "./Motor.obj" "./SSD1306.obj" "./UART0.obj" "./UART1.obj" "./VerySimpleBLEmain.obj" "./startup_msp432p401r_ccs.obj" "./system_msp432p401r.obj" "../msp432p401r.cmd" -llibc.a 
