@@ -69,7 +69,7 @@ void BumpInt_Init(void){
     P4REN |= 0b11101101; //Enable resistors
     P4OUT |= 0b11101101; //Enable pull up resistors
     P4IE |= 0b11101101; //Enable interrupts on pins 7,6,5,3,2,0
-    P4IES |= 0b11101101;  //Falling edge interrupt
+    P4IES |= 0b11101101;  //On a falling edge
     P4IFG &= 0b00000000; //clear interrupt flag
     NVIC -> ISER[1] |= 0x00000040;
 }
