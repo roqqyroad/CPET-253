@@ -60,7 +60,7 @@ volatile uint16_t Bump2 = 1;
 volatile uint16_t Bump3 = 1;
 volatile uint16_t Bump4 = 2;
 volatile uint16_t Bump5 = 3;
-volatile uint16_t count = 0;
+//volatile uint16_t count = 0;
 volatile bool wasRight;
 volatile bool wasInterrupt = 0;
 
@@ -77,7 +77,7 @@ void BumpInt_Init(void){
 // triggered on touch, falling edge
 void PORT4_IRQHandler(void){
     uint16_t status = P4IV;
-    volatile uint16_t count;
+    static uint16_t count = 0;
 
 
     if (status == 0x02){ //P4.0 BMP0

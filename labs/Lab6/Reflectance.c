@@ -98,17 +98,17 @@ uint8_t Reflectance_Read(uint32_t time)
 {
     uint8_t result;
     // write this as part of Lab 6
-
+    P7DIR |= 0xFF;//set to outputs
     //Charging sensors
     P5OUT |= 0x08;
     P7OUT |= 0xFF;
     P9OUT |= 0x04;
     //Delay to give the sensors time to charge
-    Clock_Delay1us(time * 1000); //delay 100ms
-    //Reading?
-    P7DIR &= 0xFF;
-    //Delay to read
-    Clock_Delay1us(time * 1000); //delay 100ms
+    Clock_Delay1ms(100); //delay 100ms
+
+    P7DIR &= ~0xFF;//set to inputs
+
+    Clock_Delay1us(time); //delay 100ms
     //The read information is set to result
     result = P7IN;
 
@@ -117,9 +117,9 @@ uint8_t Reflectance_Read(uint32_t time)
 
     P9OUT &= 0x04;
 
-    Clock_Delay1us(2000);
+    //Clock_Delay1us(2000);
 
-    P7DIR |= 0xFF;    //resetting sensors back
+    //P7DIR |= 0xFF;    //resetting sensors back
 
     //result = 0; // replace this line
     return result;
@@ -141,7 +141,7 @@ int32_t Reflectance_Position(uint8_t data)
     for (i = 0; i < 8; i++)
     { //create a for loop to make array
         data >> i; //shift data to right
-        if (data && 0x01)
+        if (data & 0x01)
         {
             zeroes++;
             weight += values[i];
