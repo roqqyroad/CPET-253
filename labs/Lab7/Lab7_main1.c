@@ -14,7 +14,7 @@
 #define clockCyclesToMicroseconds(a) ( (a) / 1.5 )       // 1.5 clock cycles = 1us
 
 void Servo(uint16_t angle);
-uint32_t pulseIn (void);
+uint32_t pulseIn(void);
 
 void TimerInit(void)
 {
@@ -60,34 +60,36 @@ void DelayTenMilliseconds(void)
 
 void ServoInit(void)
 {
-    Servo(4400);     //call Servo() function to center servo
-    Clock_Delay1us(1000000);     //delay here to give servo time to move - can use built in timer function
-    TA3CTL &= ~0x0030;//stop the timer
+    Servo(4000);     //call Servo() function to center servo
+    Clock_Delay1us(1000000); //delay here to give servo time to move - can use built in timer function
+    TA3CTL &= ~0x0030;     //stop the timer
     return;
 }
 void Servo(uint16_t angle_count)
 {
     TA3CCR0 = 59999;       //set period for 20ms
-    TA3CCR2  = angle_count;      //set high time for the input angle using angle_count
-    TA3CTL  |= 0x0010;     //set timer for up mode
+    TA3CCR2 = angle_count; //set high time for the input angle using angle_count
+    TA3CTL |= 0x0010;     //set timer for up mode
     TA3R = 0;
     return;
 }
-uint16_t distanceInCm(void) {
+uint16_t distanceInCm(void)
+{
     uint16_t distance;
-    float time; //for ease of use
+    float t; //for ease of use
 
     P6OUT |= TRIGGER;      //drive trigger pin high
     Clock_Delay1us(10);      //wait 10 us - can use built-in timer function
     P6OUT &= ~TRIGGER;      //drive trigger pin low
-    time = pulseIn(); //to get time
-    distance = (time*0.034/2);      //calculate distance using s=t * 0.034/2. t comes from pulseIn() function
-    if(distance == 0){
-        distance = 400;      // if no echo (distance = 0), assume object is at farthest distance
-    }//400 is the furthest distance
-    return (distance);      //return the distance
+    t = pulseIn(); //to get time
+    distance = (t * 0.034 / 2); //calculate distance using s=t * 0.034/2. t comes from pulseIn() function
+    if (distance == 0)
+    {
+        distance = 400; // if no echo (distance = 0), assume object is at farthest distance
+    }      //400 is the farthest distance
+    return distance;      //return the distance
 }
-uint32_t pulseIn (void)
+uint32_t pulseIn(void)
 {
     uint16_t width = 0;
     uint16_t time = 0;
@@ -95,20 +97,22 @@ uint32_t pulseIn (void)
     TA2CTL |= 0x0020;           //set timer for continuous mode
 
     TA2R = 0;                    //reset the count
-                        //wait for the pulse to start (while Echo is low)
-    if(TA2R >= maxcount){
-        return 0;//if count is greater than maxcount return 0
+    while(!(P6IN & ECHO))//wait for the pulse to start (while Echo is low)
+    if (TA2R >= maxcount)
+    {
+        return 0;                   //if count is greater than maxcount return 0
     }
 
     TA2R = 0;                   //reset the count
-                        //wait for the pulse to finish (while Echo is high)
-    if(TA2R >= maxcount){                 //if count is greater than maxcount return 0
-    return 0;
+    while(P6IN & ECHO)//wait for the pulse to finish (while Echo is high)
+    if (TA2R >= maxcount)
+    {                 //if count is greater than maxcount return 0
+        return 0;
     }
-    
+
     width = TA2R;               //read the count (width of the return pulse)
     TA2CTL &= ~0x0030;               //stop the timer
-    time = width*(1.5);               // convert the reading to microseconds.
+    time = width * (1.5);               // convert the reading to microseconds.
     return time;               //return the microsecond reading
 }
 
@@ -117,42 +121,55 @@ void main(void)
 
     uint16_t distance, right_wall, left_wall;
 
-	WDT_A->CTL = WDT_A_CTL_PW | WDT_A_CTL_HOLD;		// stop watchdog timer
-	Clock_Init48MHz();  // makes bus clock 48 MHz
-	//call all the port initialization functions
-	TimerInit();
-	ServoInit();
+    WDT_A->CTL = WDT_A_CTL_PW | WDT_A_CTL_HOLD;     // stop watchdog timer
+    Clock_Init48MHz();  // makes bus clock 48 MHz
+    //call all the initialization functions
+    TimerInit();
+    ServoInit();
+    Port2_Init();
+    Port3_Init();
+    Port5_Init();
+    Port6_Init();
+    //Port7_Init();
+    Port8_Init();
+    //Port9_Init();
 
-	//These are the states of the state machine
-	enum motor_states {FORWARD, BACKWARD, RIGHT, LEFT, SWEEP_RIGHT, SWEEP_LEFT} state, prevState;
+    //These are the states of the state machine
+    /*enum motor_states
+    {
+        FORWARD, BACKWARD, RIGHT, LEFT, SWEEP_RIGHT, SWEEP_LEFT
+    } state, prevState;
 
-	state = FORWARD;          //start in FORWARD state
-	prevState = !FORWARD;   //used to know when the state has changed
-	uint16_t stateTimer = 0;           //used to stay in a state
-	bool isNewState;              //true when the state has switched
+    state = FORWARD;          //start in FORWARD state
+    prevState = !FORWARD;   //used to know when the state has changed
+    uint16_t stateTimer = 0;           //used to stay in a state
+    bool isNewState;              //true when the state has switched
+*/
+    while (1)
+    {
 
+        //distance = distanceInCm();
+        printf("Distance read is : %d \n", distanceInCm());
+        Clock_Delay1ms(500);
 
-	while(1) {
-	    WDT_A->CTL = WDT_A_CTL_PW | WDT_A_CTL_HOLD;     // stop watchdog timer
-	        Clock_Init48MHz();  // makes bus clock 48 MHz
-	        Motor_Init();//initialize motors
-	        Timer_Init();//initialize timers
-	        UltraSonicInit();//initialize ultra sonic sensor
-	        ServoInit();//initialize servos
+        /*
 
-	    uint16_t distance, right_wall, left_wall;
-	    isNewState = (state != prevState);
-            prevState = state;
-	    distance = distanceInCm();  //this needs to be moved to the states that use it
+        isNewState = (state != prevState);
+        prevState = state;
+        distance = distanceInCm(); //this needs to be moved to the states that use it
 
-	    switch (state) {
+        switch (state)
+        {
 
-	    case FORWARD:
+        case FORWARD:
 
-	    case BACKWARD:
+        case BACKWARD:
 
-	    case SWEEP_RIGHT:
-            } 
+        case SWEEP_RIGHT:
+        }
         Clock_Delay1ms(20);
-	} //while
+
+        */
+
+    } //while
 }
