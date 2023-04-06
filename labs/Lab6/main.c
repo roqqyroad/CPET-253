@@ -68,9 +68,11 @@ void main(void)
     Port5_Init();
     Port7_Init();
     Port9_Init();
+
+    //create states for diagram
     enum motor_states
     {
-        FORWARD, BACKWARD, TURNLEFT, TURNRIGHT
+        FORWARD, STOPPED, CORRECTLEFT, CORRECTRIGHT
     } state, prevState; //declare enumerated states, declare starting state, declare previous state, declare state timer
     state = FORWARD;
     prevState = !FORWARD;
@@ -80,67 +82,98 @@ void main(void)
     while (1)
     {
         // Reflectance_Read(1500); //for first signoff
+        uint8_t data = Reflectance_Read(1500); //get data
+        int32_t weight = Reflectance_Position(data); //get position
 
         isNewState = (state != prevState);
         prevState = state; //save state for next time
         switch (state)
         {
         case FORWARD:
-            Motor_Forward(1275, 1305); //call driving function
-            if (result != 0b00011000)
-            { //if it is not centered,
-                if ((result = 0b10000000) | (result = 0b11000000 | result =
-                        0b0100000) | (result = 0b01100000) | (result =
-                        0b00100000) | (result = 0b00110000) | (result =
-                        0b00010000))
-                {
 
-                    state = TURNLEFT;
-                }
-                if ((result = 0b00000001) | (result = 0b00000011 | result =
-                        0b0000010) | (result = 0b00000110) | (result =
-                        0b00000100) | (result = 0b00001100) | (result =
-                        0b00001000))
-                {
-
-                    state = TURNRIGHT;
-                }
-            }
-
-            else
-            {
-                stateTimer++;
-            }
-            break;
-        case TURNRIGHT:
             if (isNewState)
             {
-                stateTimer = 0; //reset timer
-                Motor_Right(1275, 50); //turning slowly
+                Motor_Forward(4000, 4100); //go forward
+                data = Reflectance_Read(1500); //create more data
+                weight = Reflectance_Position(data); //and get position
             }
-            stateTimer++;
-            if (result = 0b00011000)
-            {
-                stateTimer = 0;
+            if (weight > 0)
+            { //if the position isnt centered and is a bit too far left, go right
+                state = CORRECTRIGHT;
+            }
+            if (weight < 0)
+            { //if the position isnt centered and is too far right, go left
+                state = CORRECTLEFT;
+            }
+            else
+            { //otherwise continue as is
                 state = FORWARD;
-                break;
-                case TURNLEFT:
-                if (isNewState)
-                {
-                    stateTimer = 0; //reset timer
-                    Motor_Left(50, 1305); //turning slowly
-                }
-                stateTimer++;
-                if (result = 0b00011000)
-                {
-                    stateTimer = 0;
-                    state = FORWARD;
-                }
-                break;
-                state = FORWARD; //default state of switch statement
-            } //end switch
-            DelayTenMilliseconds(); //Delay 10ms to pace state machine
-            // P2OUT ^= 0b00000100;//Toggle LED to demonstrate 10ms delay
+            }
+
+            break;
+
+            //Used in testing the lab
+        case STOPPED:
+            if (isNewState)
+            {
+                Motor_Stop();
+            }
+            break;
+
+
+
+        case CORRECTRIGHT:
+            if (isNewState){
+                //Motor_Stop();//for testing
+            Motor_Forward(4000, 2000);
+            data = Reflectance_Read(1500);
+            weight = Reflectance_Position(data);
+        }
+        if (weight < 0)
+        {//went too far right
+            state = CORRECTLEFT;//correct it by going left
+        }
+        if (weight == 0)
+        {//centered
+            state = FORWARD;//so continue forward
+        }
+        else
+        {//not fully corrected yet
+            state = CORRECTRIGHT;//so continue trying to correct it
         }
 
-    }
+        break;
+
+
+
+        case CORRECTLEFT:
+        if (isNewState)
+        {
+            //Motor_Stop(); //for testing
+            Motor_Forward(1900, 4100);
+            data = Reflectance_Read(1500);
+            weight = Reflectance_Position(data);
+        }
+        if (weight > 0)
+        { //if you went too far to the left
+            state = CORRECTRIGHT; //adjust by going more to the right
+        }
+        if (weight == 0)
+        { //its centered
+            state = FORWARD; //go forward
+        }
+        else
+        { //otherwise stay correcting to the left
+            state = CORRECTLEFT;
+        }
+
+        break;
+
+        state = FORWARD; //default state of switch statement
+
+    } //end switch
+    DelayTenMilliseconds(); //Delay 10ms to pace state machine
+// P2OUT ^= 0b00000100;//Toggle LED to demonstrate 10ms delay
+}
+
+}
