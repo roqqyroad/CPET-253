@@ -98,7 +98,7 @@ uint8_t Reflectance_Read(uint32_t time)
 {
     uint8_t result;
     // write this as part of Lab 6
-    P7DIR |= 0xFF;//set to outputs
+    P7DIR |= 0xFF; //set to outputs
     //Charging sensors
     P5OUT |= 0x08;
     P7OUT |= 0xFF;
@@ -106,7 +106,7 @@ uint8_t Reflectance_Read(uint32_t time)
     //Delay to give the sensors time to charge
     Clock_Delay1ms(100); //delay 100ms
 
-    P7DIR &= ~0xFF;//set to inputs
+    P7DIR &= ~0xFF; //set to inputs
 
     Clock_Delay1us(time); //delay 100ms
     //The read information is set to result
@@ -131,29 +131,19 @@ uint8_t Reflectance_Read(uint32_t time)
 int32_t Reflectance_Position(uint8_t data)
 {
     // write this as part of Lab 6
-    int32_t values[8] = { -334, -238, -142, -48, 48, 142, 238, 334 };
-    int32_t dataSet;
-    int32_t i;
-    int32_t position = 0;
-    int32_t zeroes = 0;
-    int32_t weight = 0;
-
-    for (i = 0; i < 8; i++)
+    double values[7] = { -334, -238, -142, -48, 48, 142, 238, 334 };
+    uint32_t count;
+    uint32_t counter = 0;
+    int32_t weight;
+    for (count = 0; count <= 7; count++)
     { //create a for loop to make array
-        data >> i; //shift data to right
-        if (data & 0x01)
-        {
-            zeroes++;
-            weight += values[i];
+        if (data & (1 << count))
+        { //shift data to right
+            weight = values[count];
+            counter++;
         }
     }
-    position = weight / zeroes;
-    dataSet = position;
-    weight = 0;
-    zeroes = 0;
-    position = 0;
-
-    return dataSet;
-    //return 0; // replace this line
+//weight = weight/counter;
+    return weight; // replace this line
 }
 
