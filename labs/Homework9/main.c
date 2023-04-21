@@ -25,7 +25,7 @@ void Port_Init(void){
 }//end Port init
 
 void PORT4_IRQHANDLER(void){
-    uint16_t status = P4IV;
+    uint16_t status = P4IV; //see which button was pressed
     if (status == 0x02) {
         C1 = true;
     }
@@ -40,8 +40,8 @@ void PORT4_IRQHANDLER(void){
 } //end IRQHandler
 
 void TimerInterruptInit(void){
-    TA2CTL = 0b0000000011000010;
-    TA2EX0 = 0x0005;
+    TA2CTL = 0b0000000011000010; //TAxCLK, div of 8, stop mode, interrupt enabled
+    TA2EX0 = 0x0005; //div of 6
     TA2CCR0 = 62499;
     TA2CCR3 = 62499;
     TA2CCTL3 |= BIT4; //enable interrupt for TimerA2
@@ -65,30 +65,30 @@ void main(void)
 	EnableInterrupts();
 	while(1){
 	    if(P4IN & 0b00001000){
-	        P2OUT &= 0x00;
-	        TA2R = 0;
+	        P2OUT &= 0x00; //Turn all LED off
+	        TA2R = 0; //reset timer to 0
 	        TA2CTL |= 0b0000000011010010; //timer in UP mode, starting timer
-	        } //end if
+	        } //end start button if
 	    if(C1){
-	        P2OUT |= 0b10000000;
+	        P2OUT |= 0b10000000; //turn P2.7 on
 	        TA2CTL &= ~0x0030; //stop timer
 	        C1 = false;
 	    }//end contestant 1 if
 	    if(C2){
-	        P2OUT |= 0b01000000;
+	        P2OUT |= 0b01000000; //turn P2.6 on
 	        TA2CTL &= ~0x0030; //stop timer
 	        C2 = false;
 	    } //end contestant 2 if
 	    if(C3){
-	        P2OUT |= 0b00100000;
+	        P2OUT |= 0b00100000; //turn P2.5 on
 	        TA2CTL &= ~0x0030; //stop timer
 	        C3 = false;
 	    }//end contestant 3 if
 	    if(timerInterrupt){
-	        P2OUT |= 0b00010000;
+	        P2OUT |= 0b00010000;  //turn P2.4 on
 	        TA2CTL &= ~0x0030; //stop timer
 	        timerInterrupt = false;
-	    }
+	    } //end timerInterrupt if
 
 	}//end while
 
