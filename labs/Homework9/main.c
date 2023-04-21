@@ -1,82 +1,95 @@
 #include "msp.h"
-#include "msp.h"
 #include <stdint.h>
-#include <stdbool.h>
-#include "..\inc\Clock.h"
-#include "..\inc\CortexM.h"
-#include "..\inc\Init_Ports.h"
 
+volatile bool C1 = false;
+volatile bool C2 = false;
+volatile bool C3 = false;
+volatile bool timerInterrupt = false;
 
-#define PB1 BIT0
-#define PB2 BIT1
-#define PB3 BIT2
-#define PBSTART BIT3
+void Port_Init(void){
+    //push buttons
+    P4DIR &= 0b11110000; //set as input
+    P4REN |= 0b00001111;
+    P4OUT |= 0b00001111; //active low push buttons
+    P4SEL0 &= ~0b00001111;
+    P4SEL1 &= ~0b00001111;
+    P4IE |= 0b00000111; //enable interrupts on pins 0, 1, 2
+    P4IES |= 0b00000111; //Falling edge interrupt
+    P4IFG &= ~0b00000111; //clear interrupt flag
+    NVIC -> ISER[0] |= 0x0001000;
 
-#define LED1 BIT7
-#define LED2 BIT6
-#define LED3 BIT5
-#define LEDTO BIT4
+    //LEDs
+    P2DIR |= 0b11110000; //set as output
+    P2OUT &= 0b00000000; //all LED off
+    return;
+}//end Port init
 
-volatile bool wasInterrupt = 0;
-volatile uint8_t LED = 0b00000000;
-
-
-
-void PORT4_IRQHandler(void){
+void PORT4_IRQHANDLER(void){
     uint16_t status = P4IV;
-
-
-    if (status == 0x02){ //P4.0
-        LED &= ~LED1;
-        LED |= LED1;
-
+    if (status == 0x02) {
+        C1 = true;
     }
-    else if (status == 0x04){ //P4.1
-         LED &= ~LED2;
-         LED |= LED2;
-
-     }
-    else if (status == 0x06){ //P4.2
-        LED &= ~LED3;
-        LED |= LED3;
-
+    else if (status == 0x04) {
+        C2 = true;
     }
-    else if (status == 0x08){ //P4.3 start pb
-        //start timer
-
+    else if (status == 0x06){
+        C3 = true;
     }
-    wasInterrupt = true;
-    P4IFG &= 0x00;//clear flag
+    P4IFG &= 0x00; //clear interrupt flag
+    return;
+} //end IRQHandler
 
-}
-/*
-void Timer_Init(void){
-    //Timer A2 interrupts to tell when 1 second has passed
-    //1sec = counts 1/12MHz; too many counts
+void TimerInterruptInit(void){
+    TA2CTL = 0b0000000011000010;
+    TA2EX0 = 0x0005;
+    TA2CCR0 = 62499;
+    TA2CCR3 = 62499;
+    TA2CCTL3 |= BIT4; //enable interrupt for TimerA2
+    NVIC -> ISER[0] |= 0x0002000;
+    TA2CCTL3 &= 0x00; //clear any flags
+    TA2R = 0; //reset timer
+    return;
+}//end TimerInterruptInit
 
-}
-*/
+void TA2_N_IRQHandler(void){
+     timerInterrupt = true;
+     TA2CCTL3 &= 0x00; //clear flags
+}//end IRQHandler
 
-
-
-/**
- * main.c
- */
 void main(void)
 {
 	WDT_A->CTL = WDT_A_CTL_PW | WDT_A_CTL_HOLD;		// stop watchdog timer
-	DisableInterrupts();
-    Clock_Init48MHz();  // makes bus clock 48 MHz
-    Port2_Init();
-    Port4_Init();
-    //Timer_Init();
-    EnableInterrupts();
-
+	Clock_Init48MHz();
+	Port_Init();
+	TimerInterruptInit();
+	EnableInterrupts();
 	while(1){
-	    if(wasInterrupt){
-	        wasInterrupt = false;
-	        P2OUT &= ~LED;
-	        P2OUT |= LED;
+	    if(P4IN & 0b00001000){
+	        P2OUT &= 0x00;
+	        TA2R = 0;
+	        TA2CTL |= 0b0000000011010010; //timer in UP mode, starting timer
+	        } //end if
+	    if(C1){
+	        P2OUT |= 0b10000000;
+	        TA2CTL &= ~0x0030; //stop timer
+	        C1 = false;
+	    }//end contestant 1 if
+	    if(C2){
+	        P2OUT |= 0b01000000;
+	        TA2CTL &= ~0x0030; //stop timer
+	        C2 = false;
+	    } //end contestant 2 if
+	    if(C3){
+	        P2OUT |= 0b00100000;
+	        TA2CTL &= ~0x0030; //stop timer
+	        C3 = false;
+	    }//end contestant 3 if
+	    if(timerInterrupt){
+	        P2OUT |= 0b00010000;
+	        TA2CTL &= ~0x0030; //stop timer
+	        timerInterrupt = false;
 	    }
-	}
-}
+
+	}//end while
+
+}//end main
