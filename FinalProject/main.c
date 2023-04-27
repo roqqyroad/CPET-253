@@ -173,8 +173,7 @@ int main(void)
 
     DisableInterrupts();
     Clock_Init48MHz();
-    UART0_Init();
-    Timer_Init();
+
     Port1_Init();
     Port2_Init();
     Port3_Init();
@@ -184,6 +183,9 @@ int main(void)
     Port7_Init();
     Port8_Init();
     Port9_Init();
+
+    UART0_Init();
+    Timer_Init();
     ServoInit();    //init servos
     BumpInt_Init(); //Initialize interrupts
     Reflectance_Init();
@@ -212,7 +214,7 @@ int main(void)
         bool isNewState = (state != prevState);
         prevState = state;
         uint16_t status = P4IV;
-        uint8_t data = Reflectance_Read(1500); //get data
+        uint8_t data = Reflectance_Read(1800); //get data
         int32_t weight = Reflectance_Position(data); //get position
 
         //SWITCH FOR STATES
@@ -229,19 +231,19 @@ int main(void)
             data = Reflectance_Read(1500);
             weight = Reflectance_Position(data);
 
-            if ((weight > -25) && (weight < 25))
+            if ((weight >= -48) && (weight <= 48))
             {
                 MoveRobot(BT_ByteData);
             }
 
-            if (weight < -25)
+            if (weight < -48)
             {
-                if (BT_ByteData == 1)  //forward
+                if ((BT_ByteData == 1) && (weight < -48))  //forward
                 {
                     Motor_Forward(2500, 5000);
 
                 }
-                if (BT_ByteData == 2)  //backward
+                if ((BT_ByteData == 2) && (weight < -48))  //backward
                 {
                     Motor_Backward(2500, 5000);
                 }
@@ -262,16 +264,16 @@ int main(void)
                 Clock_Delay1ms(200);
             }
 
-            if (weight > 25)
+            if (weight > 48)
             {
-                if (BT_ByteData == 1)  //forward
+                if ((BT_ByteData == 1) && (weight > 48))  //forward
                 {
-                    Motor_Forward(4700, 3000);
+                    Motor_Forward(5700, 2500);
 
                 }
-                if (BT_ByteData == 2)  //backward
+                if ((BT_ByteData == 2) && (weight > 48))  //backward
                 {
-                    Motor_Backward(4700, 3000);
+                    Motor_Backward(5700, 2500);
                 }
                 /*
                  if (BT_ByteData = 3)//right mot
@@ -298,6 +300,8 @@ int main(void)
                 state = SHAKE;  //go to shake
 
             }
+
+            stateTimer++;
             break;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -338,6 +342,7 @@ int main(void)
                 state = BACKWARD;
             }
 
+            stateTimer++;
             break;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -359,9 +364,13 @@ int main(void)
                 BT_ByteData = 0;          //ensures that the user starts in stop
                 state = USER;            //returns control to user
             }
+            stateTimer++;
             break;
+
+
             state = USER;            //default state
             Clock_Delay1ms(500);
+
         }            //end switch
 
     } //end while
